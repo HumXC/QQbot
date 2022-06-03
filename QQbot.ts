@@ -1,3 +1,13 @@
+/*
+ * @Author: HumXC Hum-XC@outlook.com
+ * @Date: 2022-06-03
+ * @LastEditors: HumXC Hum-XC@outlook.com
+ * @LastEditTime: 2022-06-03
+ * @FilePath: \QQbot\QQbot.ts
+ * @Description:
+ *
+ * Copyright (c) 2022 by HumXC Hum-XC@outlook.com, All Rights Reserved.
+ */
 import fs from "fs";
 import path from "path";
 import { BotClient } from "./lib/core/client";
@@ -6,6 +16,9 @@ const logger = require("log4js").getLogger("BotLoader");
 const confpath = path.join(__dirname, "config.js");
 const { createBot } = require(path.join(__dirname, "lib/core/client"));
 var bots: Map<number, BotClient> = new Map();
+process.on("unhandledRejection", (err) => {
+    console.log(err);
+});
 if (!fs.existsSync(confpath)) {
     fs.copyFileSync(path.join(__dirname, "lib/config.sample.js"), confpath);
     logger.info(`
