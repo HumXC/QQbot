@@ -9,6 +9,7 @@
  * Copyright (c) 2022 by error: git config user.name && git config user.email & please set dead value or install git, All Rights Reserved.
  */
 import { DiscussMessageEvent, GroupMessageEvent, PrivateMessageEvent } from "oicq";
+import { isAsyncFunction, isPromise } from "util/types";
 import { Client } from "../client";
 import { BotPlugin } from "../plugin/plugin";
 import { MsgFilter, MsgFilterPre } from "./filter";
@@ -125,8 +126,12 @@ export class Command {
             }
 
             // 回复命令的描述
-            if (!func(msg, ...args)) {
-                msg.reply(this.description);
+            if (isAsyncFunction(func)) {
+                (func(msg, ...args) as Promise<boolean>).then((result: boolean) => {
+                    if (!result) msg.reply(this.description);
+                });
+            } else {
+                if (func(msg, ...args)) msg.reply(this.description);
             }
         };
         this.baseFilter = filter;
