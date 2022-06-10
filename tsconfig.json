@@ -1,7 +1,10 @@
 {
     "compilerOptions": {
         /* Visit https://aka.ms/tsconfig.json to read more about this file */
-
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true /* Report error when not all code paths in function return a value. */,
+        "noFallthroughCasesInSwitch": true /* Report errors for fallthrough cases in switch statement. */,
         /* Projects */
         // "incremental": true,                              /* Enable incremental compilation */
         // "composite": true,                                /* Enable constraints that allow a TypeScript project to be used with project references. */

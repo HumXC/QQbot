@@ -10,4 +10,5 @@ App
 yarn-error.log
 src/lib/config.js
 src/data
-src/plugins
+src/plugins/*
+!src/plugins/SimplePlugin.ts
