@@ -1,8 +1,8 @@
 /*
  * @Author: HumXC Hum-XC@outlook.com
  * @Date: 2022-06-03
- * @LastEditors: HumXC Hum-XC@outlook.com
- * @LastEditTime: 2022-06-04
+ * @LastEditors: HumXC hum-xc@outlook.com
+ * @LastEditTime: 2022-06-10
  * @FilePath: \QQbot\src\lib\message\filter.ts
  * @Description: 此文件提供预定义的消息过滤器
  *
@@ -40,7 +40,7 @@ export function getMsgFilter(
 ): ((client: Client) => MsgFilter) | MsgFilter {
     switch (filterName) {
         case "allow_all":
-            return (message: PrivateMessage | GroupMessage | DiscussMessage) => {
+            return () => {
                 return true;
             };
 
@@ -54,7 +54,7 @@ export function getMsgFilter(
         case "atme":
             return function (message: PrivateMessage | GroupMessage | DiscussMessage) {
                 if (
-                    (message.message_type == "group" || message.message_type == "discuss") &&
+                    (message.message_type === "group" || message.message_type === "discuss") &&
                     message.atme
                 ) {
                     return true;
@@ -64,27 +64,33 @@ export function getMsgFilter(
 
         case "group_owner":
             return function (message: PrivateMessage | GroupMessage | DiscussMessage) {
-                if (message.message_type == "group") {
-                    return message.sender.role == "owner";
-                } else return false;
+                if (message.message_type === "group") {
+                    return message.sender.role === "owner";
+                } else {
+                    return false;
+                }
             };
 
         case "group_admin":
             return function (message: PrivateMessage | GroupMessage | DiscussMessage) {
-                if (message.message_type == "group") {
-                    return message.sender.role == "admin" || message.sender.role == "owner";
-                } else return false;
+                if (message.message_type === "group") {
+                    return message.sender.role === "admin" || message.sender.role === "owner";
+                } else {
+                    return false;
+                }
             };
 
         case "group_member":
             return function (message: PrivateMessage | GroupMessage | DiscussMessage) {
-                if (message.message_type == "group") {
+                if (message.message_type === "group") {
                     return (
-                        message.sender.role == "member" ||
-                        message.sender.role == "admin" ||
-                        message.sender.role == "owner"
+                        message.sender.role === "member" ||
+                        message.sender.role === "admin" ||
+                        message.sender.role === "owner"
                     );
-                } else return false;
+                } else {
+                    return false;
+                }
             };
 
         case "friend":

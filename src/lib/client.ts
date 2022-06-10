@@ -2,7 +2,7 @@
  * @Author: HumXC Hum-XC@outlook.com
  * @Date: 2022-06-02
  * @LastEditors: HumXC hum-xc@outlook.com
- * @LastEditTime: 2022-06-09
+ * @LastEditTime: 2022-06-10
  * @FilePath: \QQbot\src\lib\client.ts
  * @Description:机器人的客户端，对 oicq 的封装
  *
@@ -62,8 +62,8 @@ export class Client extends EventEmitter {
         this.oicq = _oicq.createClient(uid, config);
         this.logger = this.oicq.logger;
         this.msgManager = new MessageManager(this);
-        this.keywordManager = new KeywordManager(this, this.msgManager);
-        this.commandManager = new CommandManager(this, this.msgManager);
+        this.keywordManager = new KeywordManager(this.msgManager);
+        this.commandManager = new CommandManager(this.msgManager);
         //一天更替事件
         let nowDate = new Date();
         let timeout =
@@ -139,7 +139,9 @@ export class Client extends EventEmitter {
     private login(passwd: string | undefined = undefined): Promise<boolean> {
         // 重置保存的 密码md5 值，如果不这样做，oicq 可能会使用旧密码登录。
         this.oicq.password_md5 = undefined;
-        if (passwd === "") passwd = undefined;
+        if (passwd === "") {
+            passwd = undefined;
+        }
         return new Promise<boolean>((resolve) => {
             this.oicq.once("system.login.error", () => {
                 resolve(false);
@@ -201,7 +203,9 @@ export class Client extends EventEmitter {
         while (true) {
             this.emit(_name, data);
             let i = _name.lastIndexOf(".");
-            if (i === -1) break;
+            if (i === -1) {
+                break;
+            }
             _name = _name.slice(0, i);
         }
     }

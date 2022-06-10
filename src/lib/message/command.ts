@@ -2,15 +2,14 @@
  * @Author: error: git config user.name && git config user.email & please set dead value or install git
  * @Date: 2022-06-07
  * @LastEditors: HumXC hum-xc@outlook.com
- * @LastEditTime: 2022-06-09
+ * @LastEditTime: 2022-06-10
  * @FilePath: \QQbot\src\lib\message\command.ts
  * @Description:提供 [命令] 相关内容
  *
  * Copyright (c) 2022 by error: git config user.name && git config user.email & please set dead value or install git, All Rights Reserved.
  */
 import { DiscussMessageEvent, GroupMessageEvent, PrivateMessageEvent } from "oicq";
-import { isAsyncFunction, isPromise } from "util/types";
-import { Client } from "../client";
+import { isAsyncFunction } from "util/types";
 import { BotPlugin } from "../plugin/plugin";
 import { MsgFilter, MsgFilterPre } from "./filter";
 import { MessageManager, MsgArea, MsgHandler, MsgTrigger } from "./manager";
@@ -128,10 +127,14 @@ export class Command {
             // 回复命令的描述
             if (isAsyncFunction(func)) {
                 (func(msg, ...args) as Promise<boolean>).then((result: boolean) => {
-                    if (!result) msg.reply(this.description);
+                    if (!result) {
+                        msg.reply(this.description);
+                    }
                 });
             } else {
-                if (func(msg, ...args)) msg.reply(this.description);
+                if (func(msg, ...args)) {
+                    msg.reply(this.description);
+                }
             }
         };
         this.baseFilter = filter;
@@ -148,7 +151,9 @@ export class Command {
      * @description: 启用该命令，新的命令默认启用。
      */
     public enable() {
-        if (this.isEnable) return;
+        if (this.isEnable) {
+            return;
+        }
         this.isEnable = true;
         this.trigger.filter = this.baseFilter;
     }
@@ -157,7 +162,9 @@ export class Command {
      * @description: 停用该命令
      */
     public disable() {
-        if (!this.isEnable) return;
+        if (!this.isEnable) {
+            return;
+        }
         this.isEnable = false;
         this.trigger.filter = () => {
             return false;
@@ -175,11 +182,9 @@ export class Command {
     }
 }
 export class CommandManager {
-    private client: Client;
     private msgManager: MessageManager;
     private commands: Command[] = [];
-    constructor(client: Client, manager: MessageManager) {
-        this.client = client;
+    constructor(manager: MessageManager) {
         this.msgManager = manager;
     }
 

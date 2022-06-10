@@ -2,14 +2,13 @@
  * @Author: error: git config user.name && git config user.email & please set dead value or install git
  * @Date: 2022-06-07
  * @LastEditors: HumXC hum-xc@outlook.com
- * @LastEditTime: 2022-06-07
+ * @LastEditTime: 2022-06-10
  * @FilePath: \QQbot\src\lib\message\keyword.ts
  * @Description: 提供 [关键词] 相关内容
  *
  * Copyright (c) 2022 by error: git config user.name && git config user.email & please set dead value or install git, All Rights Reserved.
  */
 
-import { Client } from "../client";
 import { BotPlugin } from "../plugin/plugin";
 import { MsgFilter, MsgFilterPre } from "./filter";
 import { MessageManager, MsgArea, MsgHandler, MsgTrigger } from "./manager";
@@ -83,7 +82,9 @@ export class Keyword {
      * @description: 启用该关键词，新的关键词默认启用。
      */
     public enable() {
-        if (this.isEnable) return;
+        if (this.isEnable) {
+            return;
+        }
         this.isEnable = true;
         this.trigger.filter = this.baseFilter;
     }
@@ -92,7 +93,9 @@ export class Keyword {
      * @description: 停用该关键词
      */
     public disable() {
-        if (!this.isEnable) return;
+        if (!this.isEnable) {
+            return;
+        }
         this.isEnable = false;
         this.trigger.filter = () => {
             return false;
@@ -100,11 +103,9 @@ export class Keyword {
     }
 }
 export class KeywordManager {
-    private client: Client;
     private msgManager: MessageManager;
     private keywords: Keyword[] = [];
-    constructor(client: Client, manager: MessageManager) {
-        this.client = client;
+    constructor(manager: MessageManager) {
         this.msgManager = manager;
     }
 

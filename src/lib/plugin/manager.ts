@@ -2,7 +2,7 @@
  * @Author: HumXC Hum-XC@outlook.com
  * @Date: 2022-06-02
  * @LastEditors: HumXC hum-xc@outlook.com
- * @LastEditTime: 2022-06-07
+ * @LastEditTime: 2022-06-10
  * @FilePath: \QQbot\src\lib\plugin\manager.ts
  * @Description:提供插件的加载，获取等功能
  *
@@ -10,10 +10,10 @@
  */
 import path from "path";
 import fs from "fs";
-import { BotPlugin, BotPluginProfile, BotPluginClass, BotPluginProfileClass } from "./plugin";
+import { BotPluginProfile, BotPluginClass, BotPluginProfileClass } from "./plugin";
 import { getLogger, levels } from "log4js";
 import { util } from "..";
-var logger = getLogger("PluginManager");
+let logger = getLogger("PluginManager");
 logger.level = levels.ALL;
 export class PluginManager {
     // 存放插件的目录
@@ -41,9 +41,11 @@ export class PluginManager {
         // 加载插件目录下所有文件
         fs.readdirSync(this.pluginFolder).forEach((fileName: string) => {
             let stat = fs.lstatSync(path.join(this.pluginFolder, fileName));
-            if (/\.d\.ts/.exec(fileName) != null) return;
+            if (/\.d\.ts/.exec(fileName) !== null) {
+                return;
+            }
             if (stat.isFile()) {
-                if (/\.js$/.exec(fileName) != null || /\.ts/.exec(fileName)) {
+                if (/\.js$/.exec(fileName) !== null || /\.ts/.exec(fileName)) {
                     pluginPaths.push(fileName);
                     return;
                 }
@@ -65,7 +67,7 @@ export class PluginManager {
                 logger.error("导入插件时出现错误，已跳过该插件:", error);
                 continue;
             }
-            if (plugin != undefined) {
+            if (plugin !== undefined) {
                 if (plugin.Profile === undefined) {
                     logger.error("插件缺少必须的导出类: Profile, 将不会加载此插件。");
                     continue;

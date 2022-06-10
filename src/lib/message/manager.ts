@@ -2,7 +2,7 @@
  * @Author: HumXC Hum-XC@outlook.com
  * @Date: 2022-06-03
  * @LastEditors: HumXC hum-xc@outlook.com
- * @LastEditTime: 2022-06-07
+ * @LastEditTime: 2022-06-10
  * @FilePath: \QQbot\src\lib\message\manager.ts
  * @Description: 消息处理器，通过监听 oicq 的 message 事件来给机器人客户端提供消息相关的功能。
  *
@@ -92,11 +92,13 @@ class MsgTriggerContainer {
             case "group":
             case "private":
                 if (regexpSource === undefined) {
-                    if (this.triggers[area][pluginName] !== undefined)
+                    if (this.triggers[area][pluginName] !== undefined) {
                         delete this.triggers[area][pluginName];
+                    }
                 } else {
-                    if (this.triggers[area][pluginName][regexpSource] !== undefined)
+                    if (this.triggers[area][pluginName][regexpSource] !== undefined) {
                         delete this.triggers[area][pluginName][regexpSource];
+                    }
                 }
                 break;
             default:

@@ -1,8 +1,8 @@
 /*
  * @Author: HumXC Hum-XC@outlook.com
  * @Date: 2022-06-02
- * @LastEditors: HumXC Hum-XC@outlook.com
- * @LastEditTime: 2022-06-03
+ * @LastEditors: HumXC hum-xc@outlook.com
+ * @LastEditTime: 2022-06-10
  * @FilePath: \QQbot\src\lib\util.ts
  * @Description: 提供比较通用的工具函数
  *
@@ -47,7 +47,9 @@ export function verifyExtends(child: any, father: any, deep: number = -1): void 
     if (deep === 0) {
         return;
     }
-    if (typeof child != "object") return;
+    if (typeof child !== "object") {
+        return;
+    }
     for (const key in father) {
         if (Object.prototype.hasOwnProperty.call(father, key)) {
             if (Object.prototype.hasOwnProperty.call(child, key)) {
@@ -61,7 +63,9 @@ export function verifyExtends(child: any, father: any, deep: number = -1): void 
                     throw new Error(`The key '${key}' want type '${fType}' but '${cType}'`);
                 }
                 verifyExtends(c, f, --deep);
-            } else throw new Error(`The key '${key}' is not exist in '${JSON.stringify(child)}'`);
+            } else {
+                throw new Error(`The key '${key}' is not exist in '${JSON.stringify(child)}'`);
+            }
         }
     }
 }

@@ -2,7 +2,7 @@
  * @Author: HumXC Hum-XC@outlook.com
  * @Date: 2022-06-02
  * @LastEditors: HumXC hum-xc@outlook.com
- * @LastEditTime: 2022-06-09
+ * @LastEditTime: 2022-06-10
  * @FilePath: \QQbot\src\lib\plugin\plugin.ts
  * @Description: 插件类，所有插件应当继承此类。
  *
@@ -11,12 +11,12 @@
 
 import fs from "fs";
 import * as log4js from "log4js";
-import { LogLevel, MessageRet, Quotable, Sendable, User } from "oicq";
+import { LogLevel, MessageRet, Quotable, Sendable } from "oicq";
 import path from "path";
 import { util } from "..";
 import { Client } from "../client";
 import { MsgFilter, MsgFilterPre } from "../message/filter";
-import { MessageManager, MsgArea, MsgHandler, MsgTrigger } from "../message/manager";
+import { MsgArea, MsgHandler } from "../message/manager";
 import { Keyword } from "../message/keyword";
 import { Command, CommandFunc } from "../message/command";
 export interface BotPluginProfile {
@@ -152,6 +152,7 @@ export class BotPlugin {
         } catch (error) {
             this.logger.error(error);
         }
+        return;
     }
 
     /**
@@ -168,6 +169,7 @@ export class BotPlugin {
         } catch (error) {
             this.logger.error(error);
         }
+        return;
     }
 }
 
@@ -206,7 +208,7 @@ class PluginLogger {
             `[${this.client.oicq.apk.display}:${this.client.oicq.uin}] [${pluginName}]`
         );
         this.logger.level = this.client.config.log_level as LogLevel;
-        if (this.client.config.error_call_admin == true) {
+        if (this.client.config.error_call_admin === true) {
             this.error = (message: any, ...args: any[]) => {
                 // this.logger.error("测试错误", "啊对对对", new Error("error"));
                 this.logger.error(message, ...args);
@@ -266,7 +268,9 @@ class PluginData {
         util.mkDirsSync(path.dirname(dataPath));
         if (fs.existsSync(dataPath)) {
             let obj = JSON.parse(fs.readFileSync(dataPath).toString());
-            if (this.isEnableVerify) util.verifyExtends(obj, this.defaultData);
+            if (this.isEnableVerify) {
+                util.verifyExtends(obj, this.defaultData);
+            }
             Object.assign(this, obj);
             return;
         }
