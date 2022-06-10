@@ -2,7 +2,7 @@
  * @Author: HumXC Hum-XC@outlook.com
  * @Date: 2022-06-01
  * @LastEditors: HumXC hum-xc@outlook.com
- * @LastEditTime: 2022-06-07
+ * @LastEditTime: 2022-06-10
  * @FilePath: \QQbot\src\QQbot.ts
  * @Description:应用程序入口，创建和管理所有的账户
  *
@@ -27,9 +27,8 @@ if (args[0] === "child") {
 async function main() {
     const logger = log4js.getLogger("BotFather");
     logger.level = log4js.levels.ALL;
-    var config: any = undefined;
+    let config: any = undefined;
     const confpath = path.join(require?.main?.path || process.cwd(), "config.js");
-    var bots: Map<number, Client> = new Map();
 
     if (!fs.existsSync(confpath)) {
         fs.copyFileSync(path.join(__dirname, "lib/config.sample.js"), confpath);
@@ -41,7 +40,7 @@ async function main() {
     PluginManager.load();
     // 设置日志
     logger.level = config.general.log_level;
-    if (config.general.save_log_file === true)
+    if (config.general.save_log_file === true) {
         log4js.configure({
             appenders: {
                 production: {
@@ -56,11 +55,14 @@ async function main() {
                 default: { appenders: ["production"], level: "debug" },
             },
         });
+    }
 
     // 从配置分离qq号并放入botsis
-    var botsid: number[] = [];
+    let botsid: number[] = [];
     Object.keys(config).forEach((v) => {
-        if (v != "general") botsid.push(Number.parseInt(v));
+        if (v !== "general") {
+            botsid.push(Number.parseInt(v));
+        }
     });
 
     // 启动机器人客户端
@@ -77,11 +79,10 @@ async function main() {
     }
 
     function startBot(uid: number, config: any): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>((resolve) => {
             // 子进程启动机器人
             if (config.child_process === true) {
                 logger.info(`正在从子进程中启动机器人 [${uid}]`);
-                let a = PluginManager.getAllPlugins();
                 let child = child_process.fork(__filename, [
                     "child",
                     uid.toString(),
@@ -108,7 +109,9 @@ async function main() {
 /** 子进程 */
 async function child(uid: number, config: any) {
     PluginManager.load(false);
-    var bot: Client = new Client(uid, config);
+    let bot: Client = new Client(uid, config);
     await bot.start();
-    if (process.send) process.send("bot_is_started");
+    if (process.send) {
+        process.send("bot_is_started");
+    }
 }
