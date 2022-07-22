@@ -1,24 +1,33 @@
 /*
  * @Author: HumXC Hum-XC@outlook.com
  * @Date: 2022-06-02
- * @LastEditors: HumXC hum-xc@outlook.com
- * @LastEditTime: 2022-06-10
+ * @LastEditors: HumXC Hum-XC@outlook.com
+ * @LastEditTime: 2022-07-22
  * @FilePath: \QQbot\src\lib\plugin\plugin.ts
  * @Description: 插件类，所有插件应当继承此类。
  *
  * Copyright (c) 2022 by HumXC Hum-XC@outlook.com, All Rights Reserved.
  */
 
-import fs from "fs";
 import * as log4js from "log4js";
-import { LogLevel, MessageRet, Quotable, Sendable } from "oicq";
-import path from "path";
-import { util } from "..";
+import { LogLevel } from "oicq";
 import { Client } from "../client";
-import { MsgFilter, MsgFilterPre } from "../message/filter";
-import { MsgArea, MsgHandler } from "../message/manager";
-import { Keyword } from "../message/keyword";
-import { Command, CommandFunc } from "../message/command";
+
+export type Logger = {
+    debug: (message: any, ...args: any[]) => void;
+    error: (message: any, ...args: any[]) => void;
+    fatal: (message: any, ...args: any[]) => void;
+    info: (message: any, ...args: any[]) => void;
+    mark: (message: any, ...args: any[]) => void;
+    trace: (message: any, ...args: any[]) => void;
+    warn: (message: any, ...args: any[]) => void;
+};
+type BasePlugin = {
+    name: string;
+    init: (client: Client) => void;
+    logger?: PluginLogger;
+    info?: string;
+};
 export interface BotPluginProfile {
     /** 插件名称 */
     Name: string;
@@ -32,144 +41,22 @@ export interface BotPluginProfile {
 export type BotPluginClass = { new (client: Client, profile: BotPluginProfile): BotPlugin };
 export type BotPluginProfileClass = { new (): BotPluginProfile };
 /**
- * @description: 插件的实现类，所有插件都应该继承自此类
+ * @description: 插件的实现类，插件被加载之后通过此类实例化
  */
 export class BotPlugin {
     // 机器人客户端
-    public client: Client;
     public logger: PluginLogger;
-    public profile: BotPluginProfile;
-    public keywords: Keyword[] = [];
-    public commands: Command[] = [];
-    /**
-     * @description: 发送私聊消息。
-     */
-    public sendPrivateMsg: (
-        user_id: number,
-        message: Sendable,
-        source?: Quotable | undefined
-    ) => Promise<MessageRet>;
-    /**
-     * @description: 发送群聊消息。
-     */
-    public sendGroupMsg: (
-        user_id: number,
-        message: Sendable,
-        source?: Quotable | undefined
-    ) => Promise<MessageRet>;
-
-    constructor(client: Client, profile: BotPluginProfile) {
-        this.client = client;
-
-        this.sendPrivateMsg = this.client.oicq.sendPrivateMsg;
-        this.sendGroupMsg = this.client.oicq.sendGroupMsg;
-
-        this.profile = profile;
-        this.logger = new PluginLogger(client, profile.Name);
-    }
-
-    /**
-     * @description: 初始化插件，此方法会在客户端成功登录之后被调用。插件应该重写此方法。
-     */
-    public init() {
-        throw new Error(this.profile.Name + "没有重写 init() 方法");
-    }
-
-    /**
-     * @description: 从磁盘的插件数据目录加载 json 文件并反序列化成 js 对象。
-     * @param {string} name - 保存在磁盘上的文件名称，不需要携带扩展名
-     * @param {T} defaultData - 对象的默认值，此参数不应该和类 PluginData 有重合。如果插件数据目录中不存在名为 [name].json 的文件，则会根据此参数创建一个文件。
-     * @param {boolean} isEnableVerify - 是否开启验证，如果为 true，将会在加载文件后验证类与 defaultData 的继承关系。
-     * @return {PluginData & T} 一个实例对象，封装了一些方法。
-     */
-    public getData<T>(
-        name: string,
-        defaultData: T,
-        isEnableVerify: boolean = true
-    ): PluginData & T {
-        let d = defaultData as any;
-        if (
-            d.dataPath !== undefined ||
-            d.defaultData !== undefined ||
-            d.save !== undefined ||
-            d.load !== undefined
-        ) {
-            throw new Error("defaultData 不能包含 dataPath, defaultData, save, load 属性");
+    public name: string;
+    public init: (client: Client) => void;
+    public info?: string;
+    constructor(client: Client, basePlugin: BasePlugin) {
+        this.name = basePlugin.name;
+        this.init = basePlugin.init;
+        this.info = basePlugin.info;
+        this.logger = new PluginLogger(client, basePlugin.name);
+        if (basePlugin.logger) {
+            basePlugin.logger = this.logger;
         }
-        return Object.assign(new PluginData(this, name, defaultData, isEnableVerify));
-    }
-
-    /**
-     * @description: 给插件添加可被触发的关键词
-     * @param {MsgArea} area - 触发的范围
-     * @param {MsgFilter | MsgFilterPre} filter - 过滤器，可以是预定义的过滤器，也可以自定义过滤器
-     * @param {string | RegExp} keyword - 匹配的关键词
-     * @param {MsgHandler} handler - 匹配成功后运行的函数
-     */
-    public regKeyword(
-        area: MsgArea,
-        filter: MsgFilter | MsgFilterPre,
-        keyword: string | RegExp,
-        handler: MsgHandler
-    ): Keyword {
-        let _keyword: Keyword = new Keyword(this, area, filter, keyword, handler);
-        this.keywords.push(_keyword);
-        this.client.keywordManager.reg(_keyword);
-        return _keyword;
-    }
-
-    /**
-     * @description: 给插件添加命令
-     * @param {MsgArea} area - 触发的范围
-     * @param {MsgFilter | MsgFilterPre} filter - 过滤器，可以是预定义的过滤器，也可以自定义过滤器
-     * @param {string} command - 命令
-     * @param {CommandFunc} func - 命令匹配成功后运行的函数
-     */
-    public regCommand(
-        area: MsgArea,
-        filter: MsgFilter | MsgFilterPre,
-        command: string,
-        description: string,
-        func: CommandFunc
-    ): Command {
-        let _command: Command = new Command(this, area, filter, command, description, func);
-        this.commands.push(_command);
-        this.client.commandManager.reg(_command);
-        return _command;
-    }
-
-    /**
-     * @description: 发送私聊消息，此方法不会返会错误。当内部有错误时，返回 undeffined。
-     * @returns {Promise<MessageRet | undefined>}
-     */
-    public async unsafeSendPrivateMsg(
-        user_id: number,
-        message: Sendable,
-        source?: Quotable | undefined
-    ): Promise<MessageRet | undefined> {
-        try {
-            return await this.client.oicq.sendPrivateMsg(user_id, message, source);
-        } catch (error) {
-            this.logger.error(error);
-        }
-        return;
-    }
-
-    /**
-     * @description: 发送群聊消息，此方法不会返会错误。当内部有错误时，返回 undeffined。
-     * @returns {Promise<MessageRet | undefined>}
-     */
-    public async unsafeSendGroupMsg(
-        user_id: number,
-        message: Sendable,
-        source?: Quotable | undefined
-    ): Promise<MessageRet | undefined> {
-        try {
-            return await this.client.oicq.sendGroupMsg(user_id, message, source);
-        } catch (error) {
-            this.logger.error(error);
-        }
-        return;
     }
 }
 
@@ -234,161 +121,10 @@ class PluginLogger {
     }
 }
 
-class PluginData {
-    /** 插件存放数据文件的目录 */
-    public dataPath?: string;
-    /** 数据的初始值 */
-    public defaultData?: unknown;
-    /** 是否开启验证 */
-    private isEnableVerify: boolean;
-
-    /**
-     * @description:
-     * @param {BotPlugin} plugin - 插件的实例
-     * @param {string} fileName - 文件名称 (不带扩展名，扩展名被定义为 .json)
-     * @param {T} defaultData - 配置的默认值，必须是能被转成 json 的对象
-     * @param {boolean} isEnableVerify - 是否开启验证，如果为 true，将会在加载文件后验证类与 defaultData 的继承关系。
-     */
-    constructor(
-        plugin: BotPlugin,
-        fileName: string,
-        defaultData: unknown,
-        isEnableVerify: boolean = true
-    ) {
-        this.dataPath = path.join(plugin.client.oicq.dir, plugin.profile.Name, fileName + ".json");
-        this.defaultData = defaultData;
-        this.isEnableVerify = isEnableVerify;
-        this.load();
-    }
-    /**
-     * @description: 从硬盘获取插件的文件，如果不存在则根据 getData 传入的对象创建一个。
-     */
-    public load() {
-        let dataPath = this.dataPath as string;
-        util.mkDirsSync(path.dirname(dataPath));
-        if (fs.existsSync(dataPath)) {
-            let obj = JSON.parse(fs.readFileSync(dataPath).toString());
-            if (this.isEnableVerify) {
-                util.verifyExtends(obj, this.defaultData);
-            }
-            Object.assign(this, obj);
-            return;
-        }
-
-        // 根据 defaultConfig 创建一个新的配置文件
-        util.mkJsonFile(dataPath, this.defaultData);
-        Object.assign(this, this.defaultData);
-    }
-
-    /**
-     * @description: 保存到 Json 文件。
-     */
-    public save(): void {
-        let dataPath = this.dataPath as string;
-        let defaultData = this.defaultData;
-        delete this.dataPath;
-        delete this.defaultData;
-        util.mkJsonFile(dataPath, this);
-        this.dataPath = dataPath;
-        this.defaultData = defaultData;
-    }
-}
-
 export type UserType = "Person" | "Group";
 
 /** 插件用户接口，可以扩展此接口实现更多功能 */
 export interface PluginUser {
     uid: number;
     type: UserType;
-}
-
-export class PluginUserManager<T extends PluginUser> {
-    private dataFile: PluginData & { Users: T[] };
-    public userMap: { Group: Map<number, T>; Person: Map<number, T> } = {
-        Group: new Map(),
-        Person: new Map(),
-    };
-
-    /**
-     * @description: 插件的用户管理器，提供对用户信息的增删改查。对用户的操作会同步到 dataFile，但是此类不提供对文件的保存操作，需要使用 PluginData.save() 保存文件。
-     * @param {PluginData} dataFile - 保存有用户数据的文件，会查找 "Users" 节点，如果没有则会创建。
-     */
-    public constructor(dataFile: PluginData) {
-        if (!Object.prototype.hasOwnProperty.call(dataFile, "Users")) {
-            // 新建 Users 属性存储 User
-            Object.defineProperty(dataFile, "Users", {
-                value: [],
-                writable: true,
-                enumerable: true,
-                configurable: true,
-            });
-        }
-        this.dataFile = dataFile as PluginData & { Users: T[] };
-        for (let i = 0; i < this.dataFile.Users.length; i++) {
-            const user = this.dataFile.Users[i];
-            this.getTarget(user.type).set(user.uid, user);
-        }
-    }
-    /**
-     * @description: 根据用户类型获取用户列表
-     * @param {UserType} type
-     * @return {*}
-     */
-    private getTarget(type: UserType): Map<number, T> {
-        switch (type) {
-            case "Group":
-                return this.userMap.Group;
-            case "Person":
-                return this.userMap.Person;
-            default:
-                throw new Error(`未知的用户类型：${type}`);
-        }
-    }
-
-    /**
-     * @description: 同步 users 到 dataFile
-     */
-    private sync() {
-        let userList = [];
-        for (const user of this.userMap.Group.values()) {
-            userList.push(user);
-        }
-        for (const user of this.userMap.Person.values()) {
-            userList.push(user);
-        }
-        this.dataFile.Users = userList;
-    }
-
-    /**
-     * @description: 获取一个用户。
-     * @param {number} uid - 用户的 qq 号码
-     * @param {UserType} type - 用户类型，个人/群聊
-     * @return {T | undefined} 返回一个用户，如果没有此用户则为 undefined。
-     */
-    get(uid: number, type: UserType): T | undefined {
-        let target = this.getTarget(type);
-        return target.get(uid);
-    }
-
-    /**
-     * @description: 添加/修改 一个用户。此方法会遍历所有用户。
-     * @param {T} user - 需要被 添加/修改 的用户
-     */
-    set(user: T) {
-        let target = this.getTarget(user.type);
-        target.set(user.uid, user);
-        this.sync();
-    }
-    /**
-     * @description: 移除一个用户。如果用户存在，此方法会遍历所有用户。
-     * @param {number} uid - 用户的 qq 号码
-     * @param {UserType} type - 用户类型，个人/群聊
-     */
-    rm(uid: number, type: UserType) {
-        let target = this.getTarget(type);
-        if (target.has(uid)) {
-            target.delete(uid);
-            this.sync();
-        }
-    }
 }

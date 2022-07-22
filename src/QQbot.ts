@@ -1,8 +1,8 @@
 /*
  * @Author: HumXC Hum-XC@outlook.com
  * @Date: 2022-06-01
- * @LastEditors: HumXC hum-xc@outlook.com
- * @LastEditTime: 2022-06-10
+ * @LastEditors: HumXC Hum-XC@outlook.com
+ * @LastEditTime: 2022-07-22
  * @FilePath: \QQbot\src\QQbot.ts
  * @Description:应用程序入口，创建和管理所有的账户
  *
@@ -10,19 +10,10 @@
  */
 import fs from "fs";
 import path from "path";
-import { Client, PluginManager } from "./lib/index";
+import { Client } from "./lib/index";
 import log4js from "log4js";
-import * as child_process from "child_process";
 
-const args = process.argv.slice(2);
-if (args[0] === "child") {
-    let uid = Number.parseInt(args[1]);
-    let config = JSON.parse(args[2]);
-    child(uid, config);
-} else {
-    main();
-}
-
+main();
 /** 主进程 */
 async function main() {
     const logger = log4js.getLogger("BotFather");
@@ -36,8 +27,6 @@ async function main() {
         return;
     }
     config = require(confpath);
-    // 导入插件
-    PluginManager.load();
     // 设置日志
     logger.level = config.general.log_level;
     if (config.general.save_log_file === true) {
@@ -80,38 +69,9 @@ async function main() {
 
     function startBot(uid: number, config: any): Promise<void> {
         return new Promise<void>((resolve) => {
-            // 子进程启动机器人
-            if (config.child_process === true) {
-                logger.info(`正在从子进程中启动机器人 [${uid}]`);
-                let child = child_process.fork(__filename, [
-                    "child",
-                    uid.toString(),
-                    JSON.stringify(config),
-                    PluginManager.getAllPlugins().toString(),
-                ]);
-
-                child.on("close", (code) => {
-                    logger.info(`子进程关闭 [${uid}] code=${code}`);
-                });
-                child.on("message", (msg) => {
-                    if (msg === "bot_is_started") {
-                        resolve();
-                    }
-                });
-            } else {
-                // 主进程启动机器人
-                new Client(uid, config).start();
-            }
+            new Client(uid, config).start().then(() => {
+                resolve();
+            });
         });
-    }
-}
-
-/** 子进程 */
-async function child(uid: number, config: any) {
-    PluginManager.load(false);
-    let bot: Client = new Client(uid, config);
-    await bot.start();
-    if (process.send) {
-        process.send("bot_is_started");
     }
 }
