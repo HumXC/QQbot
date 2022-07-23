@@ -2,7 +2,7 @@
  * @Author: HumXC Hum-XC@outlook.com
  * @Date: 2022-06-02
  * @LastEditors: HumXC Hum-XC@outlook.com
- * @LastEditTime: 2022-07-22
+ * @LastEditTime: 2022-07-23
  * @FilePath: \QQbot\src\lib\plugin\manager.ts
  * @Description:提供插件的加载，获取等功能
  *
@@ -24,41 +24,43 @@ export class PluginManager {
     /**
      * @description: 加载 plugins 文件夹下的所有插件类。
      */
-    public load() {
+    public load(fileNames: string[]) {
         util.mkDirsSync(this.pluginFolder);
-        this.client.logger.mark("====== 准备插件 ======");
-        // 插件文件的存放相对路径，相对与 "plugins" 文件夹
-        let pluginsFilePath: string[] = [];
-        if (!fs.existsSync(this.pluginFolder)) {
-            fs.mkdirSync(this.pluginFolder);
-        }
-        // 加载插件目录下所有 js ts 文件
-        fs.readdirSync(this.pluginFolder).forEach((fileName: string) => {
-            let stat = fs.lstatSync(path.join(this.pluginFolder, fileName));
-            if (/\.d\.ts/.exec(fileName) !== null) {
-                return;
-            }
-            if (stat.isFile()) {
-                if (/\.js$/.exec(fileName) !== null || /\.ts/.exec(fileName)) {
-                    pluginsFilePath.push(fileName);
+        if (fileNames[0] === "ALL") {
+            fileNames = [];
+            fs.readdirSync(this.pluginFolder).forEach((fileName: string) => {
+                let stat = fs.statSync(path.join(this.pluginFolder, fileName));
+                if (/\.d\.ts/.exec(fileName) !== null) {
                     return;
                 }
-            } else {
-                // 如果是文件夹，则加载文件夹下的 index.ts/index.js 文件
-                let file = path.join(this.pluginFolder, fileName, "index");
-                if (fs.existsSync(file + ".js") || fs.existsSync(file + ".ts")) {
-                    pluginsFilePath.push(path.join(fileName, "index"));
+                if (stat.isFile()) {
+                    if (/\.js$/.exec(fileName) !== null || /\.ts/.exec(fileName)) {
+                        fileNames.push(fileName);
+                        return;
+                    }
+                } else {
+                    let file = path.join(this.pluginFolder, fileName, "index");
+                    if (fs.existsSync(file + ".js") || fs.existsSync(file + ".ts")) {
+                        fileNames.push(fileName);
+                    }
                 }
-            }
-        });
-        for (let i = 0; i < pluginsFilePath.length; i++) {
-            const pluginPath = pluginsFilePath[i];
-            this.client.logger.mark(`正在导入插件 [${pluginPath}]`);
+            });
+        }
+
+        for (let i = 0; i < fileNames.length; i++) {
+            const pluginPath = path.join(this.pluginFolder, fileNames[i]);
+
             let basePlugin: any;
             try {
-                basePlugin = require(path.join(this.pluginFolder, pluginPath));
+                if (fs.statSync(pluginPath).isDirectory()) {
+                    this.client.logger.mark(`正在导入文件夹 [${fileNames[i]}]`);
+                    basePlugin = require(path.join(pluginPath, "index"));
+                } else {
+                    this.client.logger.mark(`正在导入文件 [${fileNames[i]}]`);
+                    basePlugin = require(pluginPath);
+                }
             } catch (error) {
-                this.client.logger.error("导入插件时出现错误，已跳过该插件:", error);
+                this.client.logger.error("导入文件时出现错误，已跳过该插件:", error);
                 continue;
             }
 
@@ -75,17 +77,25 @@ export class PluginManager {
                 );
                 continue;
             }
-
+            this.client.logger.mark(`Name: ${basePlugin.name}`);
+            if (basePlugin.info) {
+                this.client.logger.mark(`Info: ${basePlugin.info}`);
+            }
             try {
                 let p: BotPlugin = new BotPlugin(this.client, basePlugin);
                 this.plugins.set(p.name, p);
-                if (p.info) {
-                    this.client.logger.mark(`Info: ${p.info}`);
-                }
             } catch (error) {
                 this.client.logger.error("实例化插件错误", error);
             }
-            this.client.logger.mark("=====================");
+        }
+    }
+
+    /**
+     * @description: 运行 plugin 的 init 函数
+     */
+    public init() {
+        for (const p of this.plugins.values()) {
+            p.init.call(p, this.client);
         }
     }
 }

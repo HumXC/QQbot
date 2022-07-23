@@ -2,7 +2,7 @@
  * @Author: HumXC Hum-XC@outlook.com
  * @Date: 2022-06-02
  * @LastEditors: HumXC Hum-XC@outlook.com
- * @LastEditTime: 2022-07-22
+ * @LastEditTime: 2022-07-23
  * @FilePath: \QQbot\src\lib\client.ts
  * @Description:机器人的客户端，对 oicq 的封装
  *
@@ -14,6 +14,14 @@ import { getStdInput, sleep } from "./util";
 import EventEmitter from "events";
 import { EventMap } from "./events";
 import { PluginManager } from "./plugin/manager";
+import log4js from "log4js";
+import path from "path";
+
+/** 进程间通信的消息格式 */
+export type ProcessMessage = {
+    msg: "started" | "login";
+    data?: unknown;
+};
 
 /** 事件接口 */
 export interface Client {
@@ -55,6 +63,23 @@ export class Client extends EventEmitter {
         this.oicq = _oicq.createClient(uid, config);
         this.logger = this.oicq.logger;
         this.pluginManager = new PluginManager(this);
+        // 设置日志
+        if (config.save_log_file === true) {
+            log4js.configure({
+                appenders: {
+                    production: {
+                        type: "dateFile",
+                        filename: path.join("log", this.oicq.uin.toString(), "bot.log"),
+                        alwaysIncludePattern: true,
+                        keepFileExt: true,
+                        numBackups: 30,
+                    },
+                },
+                categories: {
+                    default: { appenders: ["production"], level: "debug" },
+                },
+            });
+        }
         //一天更替事件
         let nowDate = new Date();
         let timeout =
@@ -93,11 +118,12 @@ export class Client extends EventEmitter {
                 }
             }
         });
+        this.send({ msg: "login" });
+        this.pluginManager.load(this.config.plugins);
         this.login();
         await this.waitOnline();
-
-        // 准备插件
-        this.pluginManager.load();
+        this.pluginManager.init();
+        this.send({ msg: "started" });
     }
 
     /**
@@ -168,6 +194,7 @@ export class Client extends EventEmitter {
     public isFriend(uid: number): boolean {
         return this.oicq.fl.has(uid);
     }
+
     /** emit an event */
     em<K extends keyof EventMap>(name: K, data?: any) {
         let _name: string = name;
@@ -178,6 +205,16 @@ export class Client extends EventEmitter {
                 break;
             }
             _name = _name.slice(0, i);
+        }
+    }
+
+    /**
+     * @description: 向主进程发送消息
+     * @param {ProcessMessage} data
+     */
+    private send(data: ProcessMessage): void {
+        if (process.send) {
+            process.send(data);
         }
     }
 }
