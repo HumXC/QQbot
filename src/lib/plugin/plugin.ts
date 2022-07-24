@@ -2,7 +2,7 @@
  * @Author: HumXC Hum-XC@outlook.com
  * @Date: 2022-06-02
  * @LastEditors: HumXC Hum-XC@outlook.com
- * @LastEditTime: 2022-07-22
+ * @LastEditTime: 2022-07-23
  * @FilePath: \QQbot\src\lib\plugin\plugin.ts
  * @Description: 插件类，所有插件应当继承此类。
  *
@@ -24,9 +24,10 @@ export type Logger = {
 };
 type BasePlugin = {
     name: string;
-    init: (client: Client) => void;
+    init: () => void;
     logger?: PluginLogger;
     info?: string;
+    client?: Client;
 };
 export interface BotPluginProfile {
     /** 插件名称 */
@@ -47,15 +48,18 @@ export class BotPlugin {
     // 机器人客户端
     public logger: PluginLogger;
     public name: string;
-    public init: (client: Client) => void;
+    public basePlugin: BasePlugin;
     public info?: string;
     constructor(client: Client, basePlugin: BasePlugin) {
         this.name = basePlugin.name;
-        this.init = basePlugin.init;
+        this.basePlugin = basePlugin;
         this.info = basePlugin.info;
         this.logger = new PluginLogger(client, basePlugin.name);
-        if (basePlugin.logger) {
+        if (!basePlugin.logger) {
             basePlugin.logger = this.logger;
+        }
+        if (!basePlugin.client) {
+            basePlugin.client = client;
         }
     }
 }

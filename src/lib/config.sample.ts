@@ -1,8 +1,8 @@
 /*
  * @Author: HumXC Hum-XC@outlook.com
  * @Date: 2022-06-02
- * @LastEditors: HumXC hum-xc@outlook.com
- * @LastEditTime: 2022-06-07
+ * @LastEditors: HumXC Hum-XC@outlook.com
+ * @LastEditTime: 2022-07-24
  * @FilePath: \QQbot\src\lib\config.sample.ts
  * @Description:默认的配置示例
  *
@@ -22,8 +22,6 @@ export default {
         child_process: false,
         // 日志出现错误时发送给管理员
         error_call_admin: true,
-        // 是否将日志输出到文件
-        save_log_file: false,
     },
 
     // 每个账号的单独配置(用于覆盖通用配置)

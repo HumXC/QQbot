@@ -95,7 +95,7 @@ export class PluginManager {
      */
     public init() {
         for (const p of this.plugins.values()) {
-            p.init.call(p, this.client);
+            p.basePlugin.init.call(p.basePlugin);
         }
     }
 }
