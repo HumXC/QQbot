@@ -111,6 +111,10 @@ export class BotClient extends Client {
         //密码登录
         if (this.password != "" && this.password != undefined) {
             this.login(this.password);
+            this.on("system.login.slider", function (e) {
+                console.log("输入ticket：");
+                process.stdin.once("data", (ticket) => this.submitSlider(String(ticket).trim()));
+            }).login(this.password);
         } else {
             //验证码登录
             this.on("system.login.qrcode", function (e) {
