@@ -28,9 +28,11 @@ export class PluginConfig implements BotPluginConfig {
 var allImage: Map<number, string> = new Map<number, string>();
 export class Plugin extends BotPlugin<PluginConfig> {
     public init() {
-        setInterval(() => {
-            allImage.clear();
-        }, 180000);
+        this.client.on("bot.newday", () => {
+            setTimeout(() => {
+                allImage.clear();
+            }, 14400000);
+        });
         this.client.on("message", (m) => {
             for (let i = 0; i < m.message.length; i++) {
                 const msg = m.message[i];
@@ -73,7 +75,7 @@ export class Plugin extends BotPlugin<PluginConfig> {
             if (message.source !== undefined) {
                 url = allImage.get(message.source.rand);
                 if (url === undefined) {
-                    reply("没有在聊天中找到图片\n尝试重发图片\n每半小时清除一次记录");
+                    reply("没有在聊天中找到图片\n尝试重发图片");
                     return;
                 }
             } else {

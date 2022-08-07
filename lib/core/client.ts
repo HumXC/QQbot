@@ -95,16 +95,19 @@ export class BotClient extends Client {
                     },
                 });
         }
-
-        //一天更替事件
-        let nowDate = new Date();
-        let timeout =
-            new Date(nowDate.getFullYear(), nowDate.getMonth(), 2 + nowDate.getDate()).getTime() -
-            nowDate.getTime();
-        setInterval(() => {
-            this.emit("bot.newday");
-        }, timeout);
-        this.pluginManager.loadPlugin();
+        
+         //一天更替事件
+         let nowDate = new Date();
+         let timeout =
+             new Date(nowDate.getFullYear(), nowDate.getMonth(), 2 + nowDate.getDate()).getTime() -
+             nowDate.getTime();
+         setTimeout(() => {
+             this.emit("bot.newday");
+             setInterval(() => {
+                 this.emit("bot.newday");
+             }, 86400000);
+         }, timeout);
+         this.pluginManager.loadPlugin();
     }
     /** 机器人登录 */
     botLogin() {
