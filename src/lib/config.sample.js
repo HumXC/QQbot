@@ -2,7 +2,7 @@
  * @Author: HumXC Hum-XC@outlook.com
  * @Date: 2022-06-02
  * @LastEditors: HumXC Hum-XC@outlook.com
- * @LastEditTime: 2022-07-24
+ * @LastEditTime: 2022-08-17
  * @FilePath: \QQbot\src\lib\config.sample.js
  * @Description:默认的配置示例的 js 版本，就是 config.sample.ts 编译后的文件。
  * 这个文件存在的意义就是为了在使用 ts-node 直接运行 QQbot.ts 时
@@ -30,9 +30,11 @@ module.exports = {
     // 147258369: {
     // },
     这里填QQ号: {
-        //管理员账户
+        // 管理员账户
         admin: [],
-        //插件列表(string[]类型,plugin文件夹内js文件的名称)仅输入"ALL"将加载所有插件，留空则不添加插件
+        // 插件列表(string[]类型,plugin文件夹内js文件的名称)仅输入"ALL"将加载所有插件，留空则不添加插件
         plugins: ["ALL"],
+        // 密码的明文或md5
+        password: "",
     },
 };

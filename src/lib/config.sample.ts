@@ -2,7 +2,7 @@
  * @Author: HumXC Hum-XC@outlook.com
  * @Date: 2022-06-02
  * @LastEditors: HumXC Hum-XC@outlook.com
- * @LastEditTime: 2022-07-24
+ * @LastEditTime: 2022-08-17
  * @FilePath: \QQbot\src\lib\config.sample.ts
  * @Description:默认的配置示例
  *
@@ -28,9 +28,11 @@ export default {
     // 147258369: {
     // },
     这里填QQ号: {
-        //管理员账户列表 number[]
+        // 管理员账户列表 number[]
         admin: [],
-        //插件列表(string[]类型,plugin文件夹内js文件的名称)仅输入"ALL"将加载所有插件，留空则不添加插件
+        // 插件列表(string[]类型,plugin文件夹内js文件的名称)仅输入"ALL"将加载所有插件，留空则不添加插件
         plugins: ["ALL"],
+        // 密码的明文或md5
+        password: "",
     },
 };

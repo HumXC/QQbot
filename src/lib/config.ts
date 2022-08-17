@@ -1,16 +1,14 @@
 /*
  * @Author: HumXC Hum-XC@outlook.com
  * @Date: 2022-06-02
- * @LastEditors: HumXC hum-xc@outlook.com
- * @LastEditTime: 2022-06-07
+ * @LastEditors: HumXC Hum-XC@outlook.com
+ * @LastEditTime: 2022-08-17
  * @FilePath: \QQbot\src\lib\config.ts
- * @Description:
+ * @Description: 配置文件
  *
  * Copyright (c) 2022 by HumXC Hum-XC@outlook.com, All Rights Reserved.
  */
 export type Config = {
-    // 开启子进程
-    child_process: boolean;
     // 日志出现错误时发送给管理员
     error_call_admin: boolean;
     // 是否将日志输出到文件
@@ -19,4 +17,6 @@ export type Config = {
     admin: number[];
     // 插件列表
     plugins: string[];
+    // 密码的明文或md5
+    password: string;
 };

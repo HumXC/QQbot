@@ -2,7 +2,7 @@
  * @Author: HumXC Hum-XC@outlook.com
  * @Date: 2022-06-02
  * @LastEditors: HumXC Hum-XC@outlook.com
- * @LastEditTime: 2022-07-24
+ * @LastEditTime: 2022-08-17
  * @FilePath: \QQbot\src\lib\client.ts
  * @Description:机器人的客户端，对 oicq 的封装
  *
@@ -101,17 +101,15 @@ export class Client extends EventEmitter {
                 this.oicq.login();
             });
         });
+        this.oicq
+            .on("system.login.slider", async () => {
+                console.log("输入ticket：");
+                this.oicq.submitSlider((await getStdInput()).trim());
+            })
+            .login(this.config.password);
         // 二维码登录
-        this.oicq.on("system.login.qrcode", async () => {
-            this.logger.info("输入密码开启密码登录，或者扫码之后按下回车登录。");
-            let input = await getStdInput();
-            if (input === "") {
-                this.login();
-            } else {
-                if (!(await this.login(input))) {
-                    this.login();
-                }
-            }
+        this.oicq.on("system.login.qrcode", () => {
+            this.login();
         });
         send({ msg: "login" });
         this.pluginManager.load(this.config.plugins);
@@ -147,13 +145,7 @@ export class Client extends EventEmitter {
      * @param {string} passwd - 密码或者密码的 md5 值
      * @return {boolean} 返回值表示登录是否成功
      */
-    private login(passwd: string | undefined = undefined): Promise<boolean> {
-        // 重置保存的 密码md5 值，如果不这样做，oicq 可能会使用旧密码登录。
-        this.oicq.password_md5 = undefined;
-        if (passwd === "") {
-            passwd = undefined;
-        }
-
+    private login(): Promise<boolean> {
         return new Promise<boolean>((resolve) => {
             this.oicq.once("system.login.error", () => {
                 resolve(false);
@@ -162,7 +154,7 @@ export class Client extends EventEmitter {
                 resolve(true);
             });
 
-            this.oicq.login(passwd);
+            this.oicq.login(this.config.password);
         });
     }
 
