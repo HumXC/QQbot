@@ -186,7 +186,7 @@ export const safeImageStream = async (url: string, init?: RequestInit) => {
             try {
                 const { done, value } = await reader.read();
                 if (done) {
-                    this.push(crypto.randomBytes(10));
+                    this.push(crypto.randomBytes(64));
                     this.push(null);
                     return;
                 }
