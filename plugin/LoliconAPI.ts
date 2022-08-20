@@ -12,6 +12,7 @@ import {
     MessageRet,
     Quotable,
     Sendable,
+    ImageElem,
 } from "oicq";
 import {
     BotPlugin,
@@ -22,6 +23,9 @@ import {
 } from "../lib/plugin";
 import { EventEmitter } from "events";
 import { CommandError } from "../lib/core/commandManager";
+import internal from "stream";
+import { OutgoingHttpHeaders } from "http";
+import { safeImageStream } from "../lib/core/client";
 
 class ReqData {
     r18: number = 0; // 0为非 R18，1为 R18，2为混合（在库中的分类，不等同于作品本身的 R18 标识）
@@ -111,7 +115,7 @@ export class Plugin extends BotPlugin<PluginConfig> {
                             const setu: Setu = setus[i];
 
                             if (setu.urls.regular != undefined) {
-                                let img = segment.image(setu.urls.regular);
+                                let img = await makeSafeImg(setu.urls.regular);
                                 setuReq?.message
                                     .reply(img)
                                     .catch((err) => {
@@ -453,4 +457,17 @@ function fomartTime(date: Date): string {
     var timezone = -date.getTimezoneOffset();
     if (timezone != 480) h += timezone / 60;
     return `${h < 10 ? "0" + h : h}:${m < 10 ? "0" + m : m}`;
+}
+
+async function makeSafeImg(
+    file: string | Buffer | internal.Readable,
+    cache?: boolean | undefined,
+    timeout?: number | undefined,
+    headers?: OutgoingHttpHeaders | undefined
+): Promise<ImageElem> {
+    if (typeof file === "string") {
+        return segment.image(await safeImageStream(file), cache, timeout, headers);
+    } else {
+        return segment.image(file, cache, timeout, headers);
+    }
 }

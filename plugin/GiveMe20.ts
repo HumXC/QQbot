@@ -3,6 +3,7 @@ import path from "path";
 import { AddImg } from "./SearchImg";
 import {
     GroupMessage,
+    ImageElem,
     MessageElem,
     MessageRet,
     PrivateMessage,
@@ -11,8 +12,10 @@ import {
     XmlElem,
 } from "oicq";
 import { BotPlugin, BotPluginConfig, BotPluginProfile, BotPluginUser } from "../lib/plugin";
-import { IncomingMessage } from "http";
+import { IncomingMessage, OutgoingHttpHeaders } from "http";
 import { merge } from "cheerio/lib/static";
+import internal from "stream";
+import { safeImageStream } from "../lib/core/client";
 export class PluginProfile implements BotPluginProfile {
     PluginName: string = "GiveMe20";
     BotVersion: string = "0.0.1";
@@ -302,7 +305,7 @@ export class Plugin extends BotPlugin<PluginConfig> {
         let sendSuccessImgMsgNum = 0;
         for (let i = 0; i < imgNameList.length; i++) {
             let imgUrl = this.config.url + "/" + encodeURI(imgNameList[i]);
-            let img = segment.image(imgUrl, true, 30);
+            let img = await makeSafeImg(imgUrl, true, 30);
             // 不采取直接单独发，所有消息全部转发
             // 全部发送给自己
             try {
@@ -337,7 +340,7 @@ export class Plugin extends BotPlugin<PluginConfig> {
             let imgs: MessageElem[] = [];
             for (let i = 0; i < imgNameList.length; i++) {
                 let imgUrl = this.config.url + "/" + encodeURI(imgNameList[i]);
-                let img = segment.image(imgUrl, true, 30);
+                let img = await makeSafeImg(imgUrl, true, 30);
                 imgs.push(img);
             }
             for (const user of this.users.group.values()) {
@@ -426,4 +429,17 @@ function sleep(time: number) {
             resolve();
         }, time);
     });
+}
+
+async function makeSafeImg(
+    file: string | Buffer | internal.Readable,
+    cache?: boolean | undefined,
+    timeout?: number | undefined,
+    headers?: OutgoingHttpHeaders | undefined
+): Promise<ImageElem> {
+    if (typeof file === "string") {
+        return segment.image(await safeImageStream(file), cache, timeout, headers);
+    } else {
+        return segment.image(file, cache, timeout, headers);
+    }
 }

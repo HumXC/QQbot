@@ -15,11 +15,13 @@ import {
     GroupMessage,
     PrivateMessage,
 } from "oicq";
+import crypto from "crypto";
 import { PluginManager } from "./pluginManager";
 import log4js from "log4js";
 import { messageCenter } from "./messageCenter";
 import { KeywordManager } from "./keywordManager";
 import { CommandManager } from "./commandManager";
+import { Readable } from "stream";
 interface BotConfig extends Config {
     //机器人的QQ密码
     password: string | undefined;
@@ -95,19 +97,19 @@ export class BotClient extends Client {
                     },
                 });
         }
-        
-         //一天更替事件
-         let nowDate = new Date();
-         let timeout =
-             new Date(nowDate.getFullYear(), nowDate.getMonth(), 2 + nowDate.getDate()).getTime() -
-             nowDate.getTime();
-         setTimeout(() => {
-             this.emit("bot.newday");
-             setInterval(() => {
-                 this.emit("bot.newday");
-             }, 86400000);
-         }, timeout);
-         this.pluginManager.loadPlugin();
+
+        //一天更替事件
+        let nowDate = new Date();
+        let timeout =
+            new Date(nowDate.getFullYear(), nowDate.getMonth(), 2 + nowDate.getDate()).getTime() -
+            nowDate.getTime();
+        setTimeout(() => {
+            this.emit("bot.newday");
+            setInterval(() => {
+                this.emit("bot.newday");
+            }, 86400000);
+        }, timeout);
+        this.pluginManager.loadPlugin();
     }
     /** 机器人登录 */
     botLogin() {
@@ -161,3 +163,22 @@ export function createBot(uin: string, config?: BotConfig) {
     if (isNaN(Number(uin))) throw new Error(uin + " is not an OICQ account");
     return new BotClient(Number(uin), config);
 }
+export const safeImageStream = async (url: string, init?: RequestInit) => {
+    const reader = (await fetch(url, init)).body!.getReader();
+    return new Readable({
+        async read() {
+            try {
+                const { done, value } = await reader.read();
+                if (done) {
+                    this.push(crypto.randomBytes(10));
+                    this.push(null);
+                    return;
+                }
+                this.push(value);
+            } catch (err: any) {
+                this.destroy(err);
+                reader.cancel(err);
+            }
+        },
+    });
+};
