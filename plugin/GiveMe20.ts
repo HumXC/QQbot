@@ -305,7 +305,7 @@ export class Plugin extends BotPlugin<PluginConfig> {
         let sendSuccessImgMsgNum = 0;
         for (let i = 0; i < imgNameList.length; i++) {
             let imgUrl = this.config.url + "/" + encodeURI(imgNameList[i]);
-            let img = await makeSafeImg(imgUrl, true, 30);
+            let img = await this.client.makeSafeImg(imgUrl, true, 30);
             // 不采取直接单独发，所有消息全部转发
             // 全部发送给自己
             try {
@@ -340,7 +340,7 @@ export class Plugin extends BotPlugin<PluginConfig> {
             let imgs: MessageElem[] = [];
             for (let i = 0; i < imgNameList.length; i++) {
                 let imgUrl = this.config.url + "/" + encodeURI(imgNameList[i]);
-                let img = await makeSafeImg(imgUrl, true, 30);
+                let img = await this.client.makeSafeImg(imgUrl, true, 30);
                 imgs.push(img);
             }
             for (const user of this.users.group.values()) {
@@ -429,17 +429,4 @@ function sleep(time: number) {
             resolve();
         }, time);
     });
-}
-
-async function makeSafeImg(
-    file: string | Buffer | internal.Readable,
-    cache?: boolean | undefined,
-    timeout?: number | undefined,
-    headers?: OutgoingHttpHeaders | undefined
-): Promise<ImageElem> {
-    if (typeof file === "string") {
-        return segment.image(await safeImageStream(file), cache, timeout, headers);
-    } else {
-        return segment.image(file, cache, timeout, headers);
-    }
 }

@@ -14,6 +14,8 @@ import {
     DiscussMessage,
     GroupMessage,
     PrivateMessage,
+    ImageElem,
+    segment,
 } from "oicq";
 import crypto from "crypto";
 import { PluginManager } from "./pluginManager";
@@ -21,7 +23,8 @@ import log4js from "log4js";
 import { messageCenter } from "./messageCenter";
 import { KeywordManager } from "./keywordManager";
 import { CommandManager } from "./commandManager";
-import { Readable } from "stream";
+import internal, { Readable } from "stream";
+import { OutgoingHttpHeaders } from "http";
 interface BotConfig extends Config {
     //机器人的QQ密码
     password: string | undefined;
@@ -156,6 +159,19 @@ export class BotClient extends Client {
             throw err;
         });
         return msg;
+    }
+    async makeSafeImg(
+        file: string | Buffer | internal.Readable,
+        cache?: boolean | undefined,
+        timeout?: number | undefined,
+        headers?: OutgoingHttpHeaders | undefined
+    ): Promise<ImageElem> {
+        if (typeof file === "string") {
+            this.logger.debug(`准备图片: ${file}`);
+            return segment.image(await safeImageStream(file), cache, timeout, headers);
+        } else {
+            return segment.image(file, cache, timeout, headers);
+        }
     }
 }
 /** 创建一个客户端 (=new Client) */

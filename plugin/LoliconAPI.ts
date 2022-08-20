@@ -115,7 +115,7 @@ export class Plugin extends BotPlugin<PluginConfig> {
                             const setu: Setu = setus[i];
 
                             if (setu.urls.regular != undefined) {
-                                let img = await makeSafeImg(setu.urls.regular);
+                                let img = await this.client.makeSafeImg(setu.urls.regular);
                                 setuReq?.message
                                     .reply(img)
                                     .catch((err) => {
@@ -457,17 +457,4 @@ function fomartTime(date: Date): string {
     var timezone = -date.getTimezoneOffset();
     if (timezone != 480) h += timezone / 60;
     return `${h < 10 ? "0" + h : h}:${m < 10 ? "0" + m : m}`;
-}
-
-async function makeSafeImg(
-    file: string | Buffer | internal.Readable,
-    cache?: boolean | undefined,
-    timeout?: number | undefined,
-    headers?: OutgoingHttpHeaders | undefined
-): Promise<ImageElem> {
-    if (typeof file === "string") {
-        return segment.image(await safeImageStream(file), cache, timeout, headers);
-    } else {
-        return segment.image(file, cache, timeout, headers);
-    }
 }
