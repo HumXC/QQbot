@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"os"
 	"qqbot/modules"
 
 	log "github.com/sirupsen/logrus"
@@ -21,12 +23,16 @@ func init() {
 
 func main() {
 	modules.RegisterAll()
-
+	addr := os.Getenv("ONEBOT_ADDR")
+	if addr == "" {
+		fmt.Println("Need environment [ONEBOT_ADDR]")
+		return
+	}
 	zero.RunAndBlock(&zero.Config{
 		NickName:      []string{"bot"},
 		CommandPrefix: "/",
 		Driver: []zero.Driver{
-			driver.NewWebSocketClient("ws://127.0.0.1:3001", ""),
+			driver.NewWebSocketClient("ws://"+addr, ""),
 		},
 	}, nil)
 }
