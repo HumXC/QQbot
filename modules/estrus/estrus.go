@@ -29,7 +29,7 @@ func Register() {
 		s, ok := status[id]
 		if !ok {
 			t := time.NewTimer(interval)
-			s = state{t: t}
+			s = state{t: t, n: -1}
 			go func() {
 				<-t.C
 				delete(status, id)
