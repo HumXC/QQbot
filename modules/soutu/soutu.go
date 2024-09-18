@@ -122,7 +122,7 @@ func Register() {
 		if ctx.Event.Message[0].Type != "reply" {
 			return false
 		}
-		if ctx.Event.Message[1].Type != "text" && strings.HasPrefix(ctx.Event.Message[1].Data["text"], command) {
+		if ctx.Event.Message[1].Type != "text" && !strings.HasPrefix(ctx.Event.Message[1].Data["text"], command) {
 			return false
 		}
 		reply := ctx.GetMessage(message.NewMessageIDFromString(ctx.Event.Message[0].Data["id"]))
