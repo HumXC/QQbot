@@ -41,19 +41,19 @@ func Register() {
 		s.t.Reset(interval)
 		var img []byte
 		switch {
-		case s.c > 20:
+		case s.c > 15:
 			s.t.Reset(3 * time.Minute)
 			s.o = true
 			img = images.Images[5]
-		case s.c > 15:
-			img = images.Images[4]
 		case s.c > 12:
+			img = images.Images[4]
+		case s.c > 9:
 			img = images.Images[3]
-		case s.c > 8:
+		case s.c > 7:
 			img = images.Images[2]
-		case s.c > 6:
+		case s.c > 5:
 			img = images.Images[1]
-		case s.c > 3:
+		case s.c > 2:
 			img = images.Images[0]
 		}
 		if img != nil {
