@@ -30,7 +30,7 @@ func main() {
 	}
 	zero.RunAndBlock(&zero.Config{
 		NickName:      []string{"bot"},
-		CommandPrefix: "/",
+		CommandPrefix: "#",
 		Driver: []zero.Driver{
 			driver.NewWebSocketClient("ws://"+addr, ""),
 		},
