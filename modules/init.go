@@ -1,7 +1,11 @@
 package modules
 
-import "qqbot/modules/soutu"
+import (
+	"qqbot/modules/estrus"
+	"qqbot/modules/soutu"
+)
 
 func RegisterAll() {
 	soutu.Register()
+	estrus.Register()
 }

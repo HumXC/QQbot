@@ -28,6 +28,7 @@ func main() {
 		fmt.Println("Need environment [ONEBOT_ADDR]")
 		return
 	}
+
 	zero.RunAndBlock(&zero.Config{
 		NickName:      []string{"bot"},
 		CommandPrefix: "#",

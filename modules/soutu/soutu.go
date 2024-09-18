@@ -96,7 +96,7 @@ func Search(ctx *zero.Ctx, cmd string, img *message.MessageSegment) {
 	if ctx.Event.MessageType != "private" {
 		msg = append(msg, message.Reply(ctx.Event.MessageID))
 	}
-	if !*showOrigin && !*showExternalURL && result.Data.DanbooruID != 0 {
+	if !(*showOrigin || *showExternalURL) && result.Data.DanbooruID != 0 {
 		source, err := GetDanbooruSource(result.Data.DanbooruID)
 		if err != nil {
 			msg = append(msg, message.Text("请求 Danbooru 时出现错误"))
