@@ -12,6 +12,7 @@ type state struct {
 	t *time.Timer
 	c int64
 	o bool
+	n int
 }
 
 var status = make(map[int64]state)
@@ -39,25 +40,26 @@ func Register() {
 		}
 		s.c += 1
 		s.t.Reset(interval)
-		var img []byte
+		var n = -1
 		switch {
 		case s.c > 15:
 			s.t.Reset(3 * time.Minute)
 			s.o = true
-			img = images.Images[5]
+			n = 5
 		case s.c > 12:
-			img = images.Images[4]
+			n = 4
 		case s.c > 9:
-			img = images.Images[3]
+			n = 3
 		case s.c > 7:
-			img = images.Images[2]
+			n = 2
 		case s.c > 5:
-			img = images.Images[1]
+			n = 1
 		case s.c > 2:
-			img = images.Images[0]
+			n = 0
 		}
-		if img != nil {
-			ctx.Send(message.ImageBytes(img))
+		if n != -1 && s.n != n {
+			ctx.Send(message.ImageBytes(images.Images[n]))
+			s.n = n
 		}
 		status[id] = s
 	})
