@@ -20,7 +20,7 @@ var status = make(map[int64]state)
 func Register() {
 	interval := 10 * time.Minute
 	zero.OnNotice(func(ctx *zero.Ctx) bool {
-		return ctx.Event.SubType == "poke"
+		return ctx.Event.SubType == "poke" && ctx.Event.IsToMe
 	}).Handle(func(ctx *zero.Ctx) {
 		id := ctx.Event.GroupID
 		if id == 0 {
